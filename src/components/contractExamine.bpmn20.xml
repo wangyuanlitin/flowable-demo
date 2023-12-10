@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.flowable.org/processdef" exporter="Flowable Open Source Modeler" exporterVersion="6.7.2">
+  <process id="contractExamine" name="合同审核" isExecutable="true">
+    <startEvent id="start" name="开始" flowable:initiator="starter" flowable:formFieldValidation="true"></startEvent>
+    <userTask id="submit" name="提交" flowable:assignee="${starter}" flowable:formFieldValidation="true">
+      <extensionElements>
+        <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler"><![CDATA[true]]></modeler:initiator-can-complete>
+      </extensionElements>
+    </userTask>
+    <userTask id="undertakeDepartmentDirectorSign" name="承办部门负责人签批" flowable:assignee="${undertakeDepartmentDirector}" flowable:formFieldValidation="true">
+      <extensionElements>
+        <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler"><![CDATA[false]]></modeler:initiator-can-complete>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway id="undertakeDepartmentDirectorSignGateway"></exclusiveGateway>
+    <sequenceFlow id="sid-C3006B77-402F-474F-8983-4B03BB82C9E1" sourceRef="start" targetRef="submit"></sequenceFlow>
+    <userTask id="legalDepartmentDirector1Sign" name="法律合规部门负责人签批" flowable:assignee="${legalDepartmentDirector1}" flowable:formFieldValidation="true">
+      <extensionElements>
+        <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler"><![CDATA[false]]></modeler:initiator-can-complete>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway id="legalDepartmentDirector1SignGateway"></exclusiveGateway>
+    <userTask id="examinerSign" name="合同审查人员签批" flowable:assignee="${examiner}" flowable:formFieldValidation="true">
+      <extensionElements>
+        <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler"><![CDATA[false]]></modeler:initiator-can-complete>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway id="examinerSignGateway"></exclusiveGateway>
+    <userTask id="legalDepartmentDirector2Sign" name="法律合规部门负责人签批" flowable:assignee="${legalDepartmentDirector2}" flowable:formFieldValidation="true">
+      <extensionElements>
+        <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler"><![CDATA[false]]></modeler:initiator-can-complete>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway id="legalDepartmentDirector2SignGateway"></exclusiveGateway>
+    <sequenceFlow id="sid-3E4B3643-9AF7-44CE-8642-DD1F346C75F3" sourceRef="legalDepartmentDirector2Sign" targetRef="legalDepartmentDirector2SignGateway"></sequenceFlow>
+    <sequenceFlow id="sid-10BAF2E0-5549-4DED-B852-8443FD3710C0" sourceRef="submit" targetRef="undertakeDepartmentDirectorSign"></sequenceFlow>
+    <sequenceFlow id="sid-E260A93F-1B76-46C0-BC2E-2E9D46D8FE6A" sourceRef="undertakeDepartmentDirectorSign" targetRef="undertakeDepartmentDirectorSignGateway"></sequenceFlow>
+    <sequenceFlow id="sid-4F26BD62-37C0-43EE-96FA-2C4C8D3CD1AE" sourceRef="legalDepartmentDirector1Sign" targetRef="legalDepartmentDirector1SignGateway"></sequenceFlow>
+    <sequenceFlow id="sid-3C04ED46-6FBD-48AD-B5A0-CE8A2DFCD27B" sourceRef="examinerSign" targetRef="examinerSignGateway"></sequenceFlow>
+    <endEvent id="stop" name="结束"></endEvent>
+    <sequenceFlow id="legalDepartmentDirector2SignReject1" name="驳回" sourceRef="legalDepartmentDirector2SignGateway" targetRef="examinerSign">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${legalDepartmentDirector2SignResult==1}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="legalDepartmentDirector2SignReject2" name="驳回" sourceRef="legalDepartmentDirector2SignGateway" targetRef="submit">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${legalDepartmentDirector2SignResult==2}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="examinerSignReject" name="驳回" sourceRef="examinerSignGateway" targetRef="legalDepartmentDirector1Sign">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${examinerSignResult==1}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="undertakeDepartmentDirectorSignReject" name="驳回" sourceRef="undertakeDepartmentDirectorSignGateway" targetRef="submit">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${undertakeDepartmentDirectorSignResult==1}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="legalDepartmentDirector1SignReject" name="驳回" sourceRef="legalDepartmentDirector1SignGateway" targetRef="undertakeDepartmentDirectorSign">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${legalDepartmentDirector1SignResult==1}]]></conditionExpression>
+    </sequenceFlow>
+    <subProcess id="countersignAdvice1" name="subProcess">
+      <multiInstanceLoopCharacteristics isSequential="false" flowable:collection="${countersignUserList1}" flowable:elementVariable="countersignUser1">
+        <extensionElements></extensionElements>
+        <completionCondition>${nrOfInstances==nrOfCompletedInstances}</completionCondition>
+      </multiInstanceLoopCharacteristics>
+      <startEvent id="countersignAdviceStart1" flowable:initiator="countersignAdviceStarter1" flowable:formFieldValidation="true"></startEvent>
+      <userTask id="countersign1" name="相关部门会签" flowable:assignee="${countersignAdviceStarter1}" flowable:formFieldValidation="true">
+        <extensionElements>
+          <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler"><![CDATA[false]]></modeler:initiator-can-complete>
+        </extensionElements>
+      </userTask>
+      <exclusiveGateway id="countersignGateway1"></exclusiveGateway>
+      <endEvent id="sid-65C156C2-67F8-465A-9842-B2FBE695E3C8"></endEvent>
+      <userTask id="advice1" name="意见征询" flowable:assignee="${adviceUser1}" flowable:formFieldValidation="true">
+        <extensionElements>
+          <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler"><![CDATA[false]]></modeler:initiator-can-complete>
+        </extensionElements>
+        <multiInstanceLoopCharacteristics isSequential="false" flowable:collection="${adviceUserList1}" flowable:elementVariable="adviceUser1">
+          <extensionElements></extensionElements>
+          <completionCondition>${nrOfInstances==nrOfCompletedInstances}</completionCondition>
+        </multiInstanceLoopCharacteristics>
+      </userTask>
+      <sequenceFlow id="sid-59D47624-D759-4EBE-B5BC-79CB0377EB5C" sourceRef="countersignAdviceStart1" targetRef="countersign1"></sequenceFlow>
+      <sequenceFlow id="sid-4F07E4BC-1314-4E7E-A46B-50C13CDDCC8B" sourceRef="advice1" targetRef="countersign1"></sequenceFlow>
+      <sequenceFlow id="sid-D9E62DF6-A42C-4C7A-965F-3B64C3082156" sourceRef="countersign1" targetRef="countersignGateway1"></sequenceFlow>
+      <sequenceFlow id="countersignFinish1" name="完成" sourceRef="countersignGateway1" targetRef="sid-65C156C2-67F8-465A-9842-B2FBE695E3C8">
+        <conditionExpression xsi:type="tFormalExpression"><![CDATA[${countersignResult1=1}]]></conditionExpression>
+      </sequenceFlow>
+      <sequenceFlow id="countersignTakeAdvice1" name="发起" sourceRef="countersignGateway1" targetRef="advice1">
+        <conditionExpression xsi:type="tFormalExpression"><![CDATA[${countersignResult1=2}]]></conditionExpression>
+      </sequenceFlow>
+    </subProcess>
+    <sequenceFlow id="undertakeDepartmentDirectorSignApprove" name="通过" sourceRef="undertakeDepartmentDirectorSignGateway" targetRef="legalDepartmentDirector1Sign">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${undertakeDepartmentDirectorSignResult==2}]]></conditionExpression>
+    </sequenceFlow>
+    <userTask id="advice2" name="意见征询" flowable:assignee="${adviceUser2}" flowable:formFieldValidation="true">
+      <extensionElements>
+        <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler"><![CDATA[false]]></modeler:initiator-can-complete>
+      </extensionElements>
+      <multiInstanceLoopCharacteristics isSequential="false" flowable:collection="${adviceUserList2}" flowable:elementVariable="adviceUser2">
+        <extensionElements></extensionElements>
+        <completionCondition>${nrOfInstances==nrOfCompletedInstances}</completionCondition>
+      </multiInstanceLoopCharacteristics>
+    </userTask>
+    <sequenceFlow id="sid-6FCD5D26-6290-438B-8E04-1DAEF2C779D2" sourceRef="countersignAdvice1" targetRef="undertakeDepartmentDirectorSign"></sequenceFlow>
+    <sequenceFlow id="undertakeDepartmentDirectorSignAdvice" name="发起" sourceRef="undertakeDepartmentDirectorSignGateway" targetRef="advice2">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${undertakeDepartmentDirectorSignResult==4}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sid-33938391-2BCD-4920-A224-31E172CE671E" sourceRef="advice2" targetRef="undertakeDepartmentDirectorSign"></sequenceFlow>
+    <userTask id="advice3" name="意见征询" flowable:assignee="${adviceUser3}" flowable:formFieldValidation="true">
+      <extensionElements>
+        <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler"><![CDATA[false]]></modeler:initiator-can-complete>
+      </extensionElements>
+      <multiInstanceLoopCharacteristics isSequential="false" flowable:collection="${adviceUserList3}" flowable:elementVariable="adviceUser3">
+        <extensionElements></extensionElements>
+        <completionCondition>${nrOfInstances==nrOfCompletedInstances}</completionCondition>
+      </multiInstanceLoopCharacteristics>
+    </userTask>
+    <sequenceFlow id="legalDepartmentDirector1SignApprove" name="通过" sourceRef="legalDepartmentDirector1SignGateway" targetRef="examinerSign">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${legalDepartmentDirector1SignResult==2}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="legalDepartmentDirector1SignAdvice" name="发起" sourceRef="legalDepartmentDirector1SignGateway" targetRef="advice3">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${legalDepartmentDirector1SignResult==3}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sid-656D582C-295D-403C-9A7B-FD583B57BEB7" sourceRef="advice3" targetRef="legalDepartmentDirector1Sign"></sequenceFlow>
+    <userTask id="advice4" name="意见征询" flowable:assignee="${adviceUser4}" flowable:formFieldValidation="true">
+      <extensionElements>
+        <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler"><![CDATA[false]]></modeler:initiator-can-complete>
+      </extensionElements>
+      <multiInstanceLoopCharacteristics isSequential="false" flowable:collection="${adviceUserList4}" flowable:elementVariable="adviceUser4">
+        <extensionElements></extensionElements>
+        <completionCondition>${nrOfInstances==nrOfCompletedInstances}</completionCondition>
+      </multiInstanceLoopCharacteristics>
+    </userTask>
+    <sequenceFlow id="examinerSignApprove" name="通过" sourceRef="examinerSignGateway" targetRef="legalDepartmentDirector2Sign">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${examinerSignResult==2}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="examinerSignAdvice" name="发起" sourceRef="examinerSignGateway" targetRef="advice4">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${examinerSignResult==3}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sid-6225E672-A519-4859-9AFB-D16131482CBA" sourceRef="advice4" targetRef="examinerSign"></sequenceFlow>
+    <subProcess id="countersignAdvice2" name="subProcess">
+      <multiInstanceLoopCharacteristics isSequential="false" flowable:collection="${countersignUserList2}" flowable:elementVariable="countersignUser2">
+        <extensionElements></extensionElements>
+        <completionCondition>${nrOfInstances==nrOfCompletedInstances}</completionCondition>
+      </multiInstanceLoopCharacteristics>
+      <startEvent id="countersignAdviceStart2" flowable:initiator="countersignAdviceStarter2" flowable:formFieldValidation="true"></startEvent>
+      <userTask id="countersign2" name="相关部门会签" flowable:assignee="${countersignAdviceStarter2}" flowable:formFieldValidation="true">
+        <extensionElements>
+          <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler"><![CDATA[false]]></modeler:initiator-can-complete>
+        </extensionElements>
+      </userTask>
+      <exclusiveGateway id="countersignGateway2"></exclusiveGateway>
+      <endEvent id="sid-9DA045E2-1E1B-4CF6-998A-9F270D49F508"></endEvent>
+      <userTask id="advice5" name="意见征询" flowable:assignee="${adviceUser5}" flowable:formFieldValidation="true">
+        <extensionElements>
+          <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler"><![CDATA[false]]></modeler:initiator-can-complete>
+        </extensionElements>
+        <multiInstanceLoopCharacteristics isSequential="false" flowable:collection="${adviceUserList5}" flowable:elementVariable="adviceUser5">
+          <extensionElements></extensionElements>
+          <completionCondition>${nrOfInstances==nrOfCompletedInstances}</completionCondition>
+        </multiInstanceLoopCharacteristics>
+      </userTask>
+      <sequenceFlow id="sid-DF296D43-72EC-41FB-AC36-5632290E3934" sourceRef="countersignAdviceStart2" targetRef="countersign2"></sequenceFlow>
+      <sequenceFlow id="sid-8E74F61D-6ADD-4BD9-9E93-6F6B2F8DBF11" sourceRef="advice5" targetRef="countersign2"></sequenceFlow>
+      <sequenceFlow id="sid-C1772264-EE10-4B63-8850-3EF8D0B1B1C4" sourceRef="countersign2" targetRef="countersignGateway2"></sequenceFlow>
+      <sequenceFlow id="countersignFinish2" name="完成" sourceRef="countersignGateway2" targetRef="sid-9DA045E2-1E1B-4CF6-998A-9F270D49F508">
+        <conditionExpression xsi:type="tFormalExpression"><![CDATA[${countersignResult2=1}]]></conditionExpression>
+      </sequenceFlow>
+      <sequenceFlow id="countersignTakeAdvice2" name="发起" sourceRef="countersignGateway2" targetRef="advice5">
+        <conditionExpression xsi:type="tFormalExpression"><![CDATA[${countersignResult2=2}]]></conditionExpression>
+      </sequenceFlow>
+    </subProcess>
+    <sequenceFlow id="undertakeDepartmentDirectorSignCountersign" name="发起" sourceRef="undertakeDepartmentDirectorSignGateway" targetRef="countersignAdvice1">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${undertakeDepartmentDirectorSignResult==3}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sid-2D10F56A-6DE1-4EE5-8737-E344BB6E2369" sourceRef="countersignAdvice2" targetRef="legalDepartmentDirector2Sign"></sequenceFlow>
+    <userTask id="advice6" name="意见征询" flowable:assignee="${adviceUser6}" flowable:formFieldValidation="true">
+      <extensionElements>
+        <modeler:initiator-can-complete xmlns:modeler="http://flowable.org/modeler"><![CDATA[false]]></modeler:initiator-can-complete>
+      </extensionElements>
+      <multiInstanceLoopCharacteristics isSequential="false" flowable:collection="${adviceUserList6}" flowable:elementVariable="adviceUser6">
+        <extensionElements></extensionElements>
+        <completionCondition>${nrOfInstances==nrOfCompletedInstances}</completionCondition>
+      </multiInstanceLoopCharacteristics>
+    </userTask>
+    <sequenceFlow id="legalDepartmentDirector2SignApprove" name="通过" sourceRef="legalDepartmentDirector2SignGateway" targetRef="stop">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${legalDepartmentDirector2SignResult==3}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="legalDepartmentDirector2SignCountersign" name="发起" sourceRef="legalDepartmentDirector2SignGateway" targetRef="countersignAdvice2">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${legalDepartmentDirector2SignResult==4}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="legalDepartmentDirector2SignAdvice" name="发起" sourceRef="legalDepartmentDirector2SignGateway" targetRef="advice6">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${legalDepartmentDirector2SignResult==5}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sid-228E602E-050F-4AC5-96B0-65815D0453B0" sourceRef="advice6" targetRef="legalDepartmentDirector2Sign"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_contractExamine">
+    <bpmndi:BPMNPlane bpmnElement="contractExamine" id="BPMNPlane_contractExamine">
+      <bpmndi:BPMNShape bpmnElement="start" id="BPMNShape_start">
+        <omgdc:Bounds height="30.0" width="30.0" x="190.0" y="45.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="submit" id="BPMNShape_submit">
+        <omgdc:Bounds height="80.0" width="100.0" x="155.0" y="120.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="undertakeDepartmentDirectorSign" id="BPMNShape_undertakeDepartmentDirectorSign">
+        <omgdc:Bounds height="80.0" width="100.0" x="155.0" y="240.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="undertakeDepartmentDirectorSignGateway" id="BPMNShape_undertakeDepartmentDirectorSignGateway">
+        <omgdc:Bounds height="40.0" width="40.0" x="185.0" y="375.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="legalDepartmentDirector1Sign" id="BPMNShape_legalDepartmentDirector1Sign">
+        <omgdc:Bounds height="80.0" width="100.0" x="155.0" y="480.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="legalDepartmentDirector1SignGateway" id="BPMNShape_legalDepartmentDirector1SignGateway">
+        <omgdc:Bounds height="40.0" width="40.0" x="185.0" y="615.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="examinerSign" id="BPMNShape_examinerSign">
+        <omgdc:Bounds height="80.0" width="100.0" x="155.0" y="705.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="examinerSignGateway" id="BPMNShape_examinerSignGateway">
+        <omgdc:Bounds height="40.0" width="40.0" x="185.0" y="840.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="legalDepartmentDirector2Sign" id="BPMNShape_legalDepartmentDirector2Sign">
+        <omgdc:Bounds height="80.0" width="100.0" x="155.0" y="930.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="legalDepartmentDirector2SignGateway" id="BPMNShape_legalDepartmentDirector2SignGateway">
+        <omgdc:Bounds height="40.0" width="40.0" x="185.0" y="1050.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="stop" id="BPMNShape_stop">
+        <omgdc:Bounds height="28.0" width="28.0" x="191.0" y="1155.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="countersignAdvice1" id="BPMNShape_countersignAdvice1">
+        <omgdc:Bounds height="206.0" width="448.0" x="405.0" y="225.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="countersignAdviceStart1" id="BPMNShape_countersignAdviceStart1">
+        <omgdc:Bounds height="30.0" width="30.0" x="420.0" y="313.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="countersign1" id="BPMNShape_countersign1">
+        <omgdc:Bounds height="80.0" width="100.0" x="480.0" y="288.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="countersignGateway1" id="BPMNShape_countersignGateway1">
+        <omgdc:Bounds height="40.0" width="40.0" x="625.0" y="308.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-65C156C2-67F8-465A-9842-B2FBE695E3C8" id="BPMNShape_sid-65C156C2-67F8-465A-9842-B2FBE695E3C8">
+        <omgdc:Bounds height="28.0" width="28.0" x="710.0" y="233.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="advice1" id="BPMNShape_advice1">
+        <omgdc:Bounds height="80.0" width="100.0" x="720.0" y="288.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="advice2" id="BPMNShape_advice2">
+        <omgdc:Bounds height="80.0" width="100.0" x="405.0" y="450.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="advice3" id="BPMNShape_advice3">
+        <omgdc:Bounds height="80.0" width="100.0" x="405.0" y="595.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="advice4" id="BPMNShape_advice4">
+        <omgdc:Bounds height="80.0" width="100.0" x="405.0" y="820.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="countersignAdvice2" id="BPMNShape_countersignAdvice2">
+        <omgdc:Bounds height="206.0" width="448.0" x="405.0" y="930.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="countersignAdviceStart2" id="BPMNShape_countersignAdviceStart2">
+        <omgdc:Bounds height="30.0" width="30.0" x="420.0" y="1018.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="countersign2" id="BPMNShape_countersign2">
+        <omgdc:Bounds height="80.0" width="100.0" x="480.0" y="993.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="countersignGateway2" id="BPMNShape_countersignGateway2">
+        <omgdc:Bounds height="40.0" width="40.0" x="625.0" y="1013.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-9DA045E2-1E1B-4CF6-998A-9F270D49F508" id="BPMNShape_sid-9DA045E2-1E1B-4CF6-998A-9F270D49F508">
+        <omgdc:Bounds height="28.0" width="28.0" x="710.0" y="938.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="advice5" id="BPMNShape_advice5">
+        <omgdc:Bounds height="80.0" width="100.0" x="720.0" y="993.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="advice6" id="BPMNShape_advice6">
+        <omgdc:Bounds height="80.0" width="100.0" x="405.0" y="1170.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="legalDepartmentDirector2SignCountersign" id="BPMNEdge_legalDepartmentDirector2SignCountersign" flowable:sourceDockerX="20.5" flowable:sourceDockerY="20.5" flowable:targetDockerX="224.0" flowable:targetDockerY="103.0">
+        <omgdi:waypoint x="223.82716919739596" y="1068.8731019522777"></omgdi:waypoint>
+        <omgdi:waypoint x="404.99999999999966" y="1052.8302833530106"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-E260A93F-1B76-46C0-BC2E-2E9D46D8FE6A" id="BPMNEdge_sid-E260A93F-1B76-46C0-BC2E-2E9D46D8FE6A" flowable:sourceDockerX="50.0" flowable:sourceDockerY="79.0" flowable:targetDockerX="20.5" flowable:targetDockerY="20.5">
+        <omgdi:waypoint x="205.0062091503268" y="319.95000000000005"></omgdi:waypoint>
+        <omgdi:waypoint x="205.36842105263156" y="375.36842105263156"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-DF296D43-72EC-41FB-AC36-5632290E3934" id="BPMNEdge_sid-DF296D43-72EC-41FB-AC36-5632290E3934" flowable:sourceDockerX="15.0" flowable:sourceDockerY="15.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="449.94999797575196" y="1033.0"></omgdi:waypoint>
+        <omgdi:waypoint x="479.9999999999359" y="1033.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="countersignTakeAdvice1" id="BPMNEdge_countersignTakeAdvice1" flowable:sourceDockerX="20.5" flowable:sourceDockerY="20.5" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="664.5187147461664" y="328.4233870967742"></omgdi:waypoint>
+        <omgdi:waypoint x="719.9999999999911" y="328.2006024096385"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-C1772264-EE10-4B63-8850-3EF8D0B1B1C4" id="BPMNEdge_sid-C1772264-EE10-4B63-8850-3EF8D0B1B1C4" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="20.5" flowable:targetDockerY="20.5">
+        <omgdi:waypoint x="579.9499999999846" y="1033.2162337662337"></omgdi:waypoint>
+        <omgdi:waypoint x="625.4130434782357" y="1033.4130434782608"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="countersignTakeAdvice2" id="BPMNEdge_countersignTakeAdvice2" flowable:sourceDockerX="20.5" flowable:sourceDockerY="20.5" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="664.518714746164" y="1033.4233870967741"></omgdi:waypoint>
+        <omgdi:waypoint x="719.999999999966" y="1033.2006024096383"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-656D582C-295D-403C-9A7B-FD583B57BEB7" id="BPMNEdge_sid-656D582C-295D-403C-9A7B-FD583B57BEB7" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="405.0" y="612.0000000000001"></omgdi:waypoint>
+        <omgdi:waypoint x="254.94999999999993" y="542.977"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="legalDepartmentDirector1SignApprove" id="BPMNEdge_legalDepartmentDirector1SignApprove" flowable:sourceDockerX="20.5" flowable:sourceDockerY="20.5" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="205.41284403669724" y="654.5281622364804"></omgdi:waypoint>
+        <omgdi:waypoint x="205.1824200913242" y="705.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="undertakeDepartmentDirectorSignAdvice" id="BPMNEdge_undertakeDepartmentDirectorSignAdvice" flowable:sourceDockerX="20.5" flowable:sourceDockerY="20.5" flowable:targetDockerX="1.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="218.37842256862078" y="401.5704237288136"></omgdi:waypoint>
+        <omgdi:waypoint x="404.99999999999994" y="489.5286783042394"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-4F26BD62-37C0-43EE-96FA-2C4C8D3CD1AE" id="BPMNEdge_sid-4F26BD62-37C0-43EE-96FA-2C4C8D3CD1AE" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="20.5" flowable:targetDockerY="20.5">
+        <omgdi:waypoint x="205.17294372294373" y="559.95"></omgdi:waypoint>
+        <omgdi:waypoint x="205.41304347826087" y="615.4130434782609"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="countersignFinish2" id="BPMNEdge_countersignFinish2" flowable:sourceDockerX="20.5" flowable:sourceDockerY="20.5" flowable:targetDockerX="14.0" flowable:targetDockerY="14.0">
+        <omgdi:waypoint x="645.5" y="1013.5"></omgdi:waypoint>
+        <omgdi:waypoint x="645.5" y="952.0"></omgdi:waypoint>
+        <omgdi:waypoint x="710.0" y="952.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-C3006B77-402F-474F-8983-4B03BB82C9E1" id="BPMNEdge_sid-C3006B77-402F-474F-8983-4B03BB82C9E1" flowable:sourceDockerX="15.0" flowable:sourceDockerY="15.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="205.0" y="74.94999817309815"></omgdi:waypoint>
+        <omgdi:waypoint x="205.0" y="120.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="countersignFinish1" id="BPMNEdge_countersignFinish1" flowable:sourceDockerX="20.5" flowable:sourceDockerY="20.5" flowable:targetDockerX="14.0" flowable:targetDockerY="14.0">
+        <omgdi:waypoint x="645.5" y="308.5"></omgdi:waypoint>
+        <omgdi:waypoint x="645.5" y="247.0"></omgdi:waypoint>
+        <omgdi:waypoint x="710.0" y="247.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="legalDepartmentDirector2SignAdvice" id="BPMNEdge_legalDepartmentDirector2SignAdvice" flowable:sourceDockerX="20.5" flowable:sourceDockerY="20.5" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="217.65361732202516" y="1077.2956940874035"></omgdi:waypoint>
+        <omgdi:waypoint x="405.0" y="1182.0440881763527"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-10BAF2E0-5549-4DED-B852-8443FD3710C0" id="BPMNEdge_sid-10BAF2E0-5549-4DED-B852-8443FD3710C0" flowable:sourceDockerX="50.0" flowable:sourceDockerY="79.0" flowable:targetDockerX="50.0" flowable:targetDockerY="1.0">
+        <omgdi:waypoint x="205.0" y="199.95"></omgdi:waypoint>
+        <omgdi:waypoint x="205.0" y="240.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-D9E62DF6-A42C-4C7A-965F-3B64C3082156" id="BPMNEdge_sid-D9E62DF6-A42C-4C7A-965F-3B64C3082156" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="20.5" flowable:targetDockerY="20.5">
+        <omgdi:waypoint x="579.9499999999978" y="328.21623376623376"></omgdi:waypoint>
+        <omgdi:waypoint x="625.4130434782609" y="328.4130434782609"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="undertakeDepartmentDirectorSignReject" id="BPMNEdge_undertakeDepartmentDirectorSignReject" flowable:sourceDockerX="5.500000000000028" flowable:sourceDockerY="20.34375" flowable:targetDockerX="1.0" flowable:targetDockerY="60.0">
+        <omgdi:waypoint x="185.34375" y="395.34375"></omgdi:waypoint>
+        <omgdi:waypoint x="46.5" y="395.34375"></omgdi:waypoint>
+        <omgdi:waypoint x="46.5" y="180.0"></omgdi:waypoint>
+        <omgdi:waypoint x="155.0" y="180.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="legalDepartmentDirector1SignReject" id="BPMNEdge_legalDepartmentDirector1SignReject" flowable:sourceDockerX="20.5" flowable:sourceDockerY="20.5" flowable:targetDockerX="1.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="185.5" y="635.5"></omgdi:waypoint>
+        <omgdi:waypoint x="67.5" y="635.5"></omgdi:waypoint>
+        <omgdi:waypoint x="67.5" y="280.0"></omgdi:waypoint>
+        <omgdi:waypoint x="154.99999999997056" y="280.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-33938391-2BCD-4920-A224-31E172CE671E" id="BPMNEdge_sid-33938391-2BCD-4920-A224-31E172CE671E" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="407.3791378899738" y="450.0"></omgdi:waypoint>
+        <omgdi:waypoint x="252.55180995475118" y="319.95000000000005"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-6FCD5D26-6290-438B-8E04-1DAEF2C779D2" id="BPMNEdge_sid-6FCD5D26-6290-438B-8E04-1DAEF2C779D2" flowable:sourceDockerX="447.0" flowable:sourceDockerY="103.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="852.95" y="328.0"></omgdi:waypoint>
+        <omgdi:waypoint x="882.5" y="328.0"></omgdi:waypoint>
+        <omgdi:waypoint x="882.5" y="210.0"></omgdi:waypoint>
+        <omgdi:waypoint x="323.5" y="210.0"></omgdi:waypoint>
+        <omgdi:waypoint x="254.95" y="250.46413502109706"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-228E602E-050F-4AC5-96B0-65815D0453B0" id="BPMNEdge_sid-228E602E-050F-4AC5-96B0-65815D0453B0" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="413.3329860387581" y="1170.0"></omgdi:waypoint>
+        <omgdi:waypoint x="246.6128464263388" y="1009.9499999999999"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-2D10F56A-6DE1-4EE5-8737-E344BB6E2369" id="BPMNEdge_sid-2D10F56A-6DE1-4EE5-8737-E344BB6E2369" flowable:sourceDockerX="447.0" flowable:sourceDockerY="103.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="852.95" y="1033.0"></omgdi:waypoint>
+        <omgdi:waypoint x="888.5" y="1033.0"></omgdi:waypoint>
+        <omgdi:waypoint x="888.5" y="916.0"></omgdi:waypoint>
+        <omgdi:waypoint x="318.5" y="916.0"></omgdi:waypoint>
+        <omgdi:waypoint x="254.94999999999982" y="946.2114537444934"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="examinerSignReject" id="BPMNEdge_examinerSignReject" flowable:sourceDockerX="20.5" flowable:sourceDockerY="20.5" flowable:targetDockerX="1.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="185.5" y="860.5"></omgdi:waypoint>
+        <omgdi:waypoint x="83.5" y="860.5"></omgdi:waypoint>
+        <omgdi:waypoint x="83.5" y="520.0"></omgdi:waypoint>
+        <omgdi:waypoint x="154.99999999995987" y="520.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-3C04ED46-6FBD-48AD-B5A0-CE8A2DFCD27B" id="BPMNEdge_sid-3C04ED46-6FBD-48AD-B5A0-CE8A2DFCD27B" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="20.5" flowable:targetDockerY="20.5">
+        <omgdi:waypoint x="205.17294372294373" y="784.9499999999999"></omgdi:waypoint>
+        <omgdi:waypoint x="205.41304347826087" y="840.4130434782609"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-59D47624-D759-4EBE-B5BC-79CB0377EB5C" id="BPMNEdge_sid-59D47624-D759-4EBE-B5BC-79CB0377EB5C" flowable:sourceDockerX="15.0" flowable:sourceDockerY="15.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="449.94999797575196" y="328.0"></omgdi:waypoint>
+        <omgdi:waypoint x="480.0" y="328.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-4F07E4BC-1314-4E7E-A46B-50C13CDDCC8B" id="BPMNEdge_sid-4F07E4BC-1314-4E7E-A46B-50C13CDDCC8B" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="770.0" y="367.95000000000005"></omgdi:waypoint>
+        <omgdi:waypoint x="770.0" y="410.0"></omgdi:waypoint>
+        <omgdi:waypoint x="530.0" y="410.0"></omgdi:waypoint>
+        <omgdi:waypoint x="530.0" y="367.95000000000005"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="undertakeDepartmentDirectorSignCountersign" id="BPMNEdge_undertakeDepartmentDirectorSignCountersign" flowable:sourceDockerX="20.5" flowable:sourceDockerY="20.5" flowable:targetDockerX="1.0" flowable:targetDockerY="103.0">
+        <omgdi:waypoint x="220.4252798507462" y="390.46268656716416"></omgdi:waypoint>
+        <omgdi:waypoint x="404.99999999999994" y="328.31982543640896"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-6225E672-A519-4859-9AFB-D16131482CBA" id="BPMNEdge_sid-6225E672-A519-4859-9AFB-D16131482CBA" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="404.99999999999994" y="837.0"></omgdi:waypoint>
+        <omgdi:waypoint x="254.94999999999993" y="767.977"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-8E74F61D-6ADD-4BD9-9E93-6F6B2F8DBF11" id="BPMNEdge_sid-8E74F61D-6ADD-4BD9-9E93-6F6B2F8DBF11" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="770.0" y="1072.95"></omgdi:waypoint>
+        <omgdi:waypoint x="770.0" y="1115.0"></omgdi:waypoint>
+        <omgdi:waypoint x="530.0" y="1115.0"></omgdi:waypoint>
+        <omgdi:waypoint x="530.0" y="1072.95"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="legalDepartmentDirector1SignAdvice" id="BPMNEdge_legalDepartmentDirector1SignAdvice" flowable:sourceDockerX="20.5" flowable:sourceDockerY="20.5" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="224.48423323963524" y="635.4618473895582"></omgdi:waypoint>
+        <omgdi:waypoint x="404.9999999999354" y="635.1001002004007"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="examinerSignApprove" id="BPMNEdge_examinerSignApprove" flowable:sourceDockerX="20.5" flowable:sourceDockerY="20.5" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="205.41284403669724" y="879.5281622364804"></omgdi:waypoint>
+        <omgdi:waypoint x="205.1824200913242" y="930.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-3E4B3643-9AF7-44CE-8642-DD1F346C75F3" id="BPMNEdge_sid-3E4B3643-9AF7-44CE-8642-DD1F346C75F3" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="20.5" flowable:targetDockerY="20.5">
+        <omgdi:waypoint x="205.19875621890546" y="1009.9499999999999"></omgdi:waypoint>
+        <omgdi:waypoint x="205.4" y="1050.4"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="undertakeDepartmentDirectorSignApprove" id="BPMNEdge_undertakeDepartmentDirectorSignApprove" flowable:sourceDockerX="20.5" flowable:sourceDockerY="20.5" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="205.4233870967742" y="414.5187147461724"></omgdi:waypoint>
+        <omgdi:waypoint x="205.16044176706828" y="480.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="legalDepartmentDirector2SignReject1" id="BPMNEdge_legalDepartmentDirector2SignReject1" flowable:sourceDockerX="20.5" flowable:sourceDockerY="20.5" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="185.5" y="1070.5"></omgdi:waypoint>
+        <omgdi:waypoint x="102.5" y="1070.5"></omgdi:waypoint>
+        <omgdi:waypoint x="102.5" y="745.0"></omgdi:waypoint>
+        <omgdi:waypoint x="155.0" y="745.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="legalDepartmentDirector2SignReject2" id="BPMNEdge_legalDepartmentDirector2SignReject2" flowable:sourceDockerX="20.5" flowable:sourceDockerY="36.0" flowable:targetDockerX="1.0" flowable:targetDockerY="20.0">
+        <omgdi:waypoint x="201.8876146788989" y="1086.8777522935782"></omgdi:waypoint>
+        <omgdi:waypoint x="30.5" y="1129.0"></omgdi:waypoint>
+        <omgdi:waypoint x="30.5" y="140.0"></omgdi:waypoint>
+        <omgdi:waypoint x="154.99999999996948" y="140.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="legalDepartmentDirector2SignApprove" id="BPMNEdge_legalDepartmentDirector2SignApprove" flowable:sourceDockerX="20.5" flowable:sourceDockerY="20.5" flowable:targetDockerX="14.0" flowable:targetDockerY="14.0">
+        <omgdi:waypoint x="205.4030612244898" y="1089.5369266055045"></omgdi:waypoint>
+        <omgdi:waypoint x="205.070811289117" y="1155.0001766477444"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="examinerSignAdvice" id="BPMNEdge_examinerSignAdvice" flowable:sourceDockerX="20.5" flowable:sourceDockerY="20.5" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="224.48423323966298" y="860.4618473895582"></omgdi:waypoint>
+        <omgdi:waypoint x="404.9999999999675" y="860.1001002004008"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>
