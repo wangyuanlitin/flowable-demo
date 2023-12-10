@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "bpmn-js": "^15.2.2",
+    "diagram-js": "^13.0.0",
     "vue": "^3.3.10"
   },
   "devDependencies": {
